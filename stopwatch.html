@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Stopwatch</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        .background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .shape {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .shape:nth-child(1) {
+            width: 80px;
+            height: 80px;
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            width: 120px;
+            height: 120px;
+            top: 60%;
+            right: 15%;
+            animation-delay: 2s;
+        }
+
+        .shape:nth-child(3) {
+            width: 60px;
+            height: 60px;
+            bottom: 20%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+
+        .shape:nth-child(4) {
+            width: 100px;
+            height: 100px;
+            top: 10%;
+            right: 30%;
+            animation-delay: 1s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px) rotate(0deg);
+                opacity: 0.7;
+            }
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+                opacity: 0.3;
+            }
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 3rem 2rem;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+            animation: slideUp 0.8s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        .theme-selector {
+            position: absolute;
+            top: 0;
+            right: 0;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .theme-btn {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.2);
+            border-color: white;
+        }
+
+        .theme-btn.active {
+            border-color: white;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .theme-purple { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .theme-ocean { background: linear-gradient(135deg, #00c6ff, #0072ff); }
+        .theme-sunset { background: linear-gradient(135deg, #ff7e5f, #feb47b); }
+        .theme-forest { background: linear-gradient(135deg, #11998e, #38ef7d); }
+
+        .stopwatch-display {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stopwatch-display::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                left: -100%;
+            }
+            100% {
+                left: 100%;
+            }
+        }
+
+        .time-display {
+            font-size: 4rem;
+            font-weight: 300;
+            color: white;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            letter-spacing: 0.1em;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .time-display.running {
+            color: #00ff88;
+            text-shadow: 0 0 30px rgba(0, 255, 136, 0.6);
+        }
+
+        .progress-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            z-index: -1;
+        }
+
+        .progress-ring circle {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.1);
+            stroke-width: 4;
+        }
+
+        .progress-ring .progress {
+            stroke: #00ff88;
+            stroke-dasharray: 628;
+            stroke-dashoffset: 628;
+            transition: stroke-dashoffset 0.1s;
+            filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.5));
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-around;
+            margin: 1rem 0;
+            gap: 1rem;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1rem;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 2rem 0;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            min-width: 120px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-start {
+            background: linear-gradient(45deg, #00ff88, #00cc6a);
+            color: white;
+            box-shadow: 0 10px 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .btn-start:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0, 255, 136, 0.4);
+        }
+
+        .btn-pause {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-pause:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-reset {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+            box-shadow: 0 10px 20px rgba(78, 205, 196, 0.3);
+        }
+
+        .btn-reset:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(78, 205, 196, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #a8a8a8, #8d8d8d);
+            color: white;
+            box-shadow: 0 10px 20px rgba(168, 168, 168, 0.3);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(168, 168, 168, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .sound-toggle {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sound-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .sound-toggle.muted {
+            opacity: 0.5;
+        }
+
+        .lap-section {
+            margin-top: 2rem;
+        }
+
+        .lap-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .lap-title {
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .lap-stats {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .lap-times {
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+            padding: 1rem;
+        }
+
+        .lap-times::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .lap-times::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .lap-times::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        .lap-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .lap-item:last-child {
+            border-bottom: none;
+        }
+
+        .lap-item.fastest {
+            background: rgba(0, 255, 136, 0.1);
+            border-radius: 8px;
+            padding: 0.5rem;
+            margin: 0.2rem 0;
+        }
+
+        .lap-item.slowest {
+            background: rgba(255, 107, 107, 0.1);
+            border-radius: 8px;
+            padding: 0.5rem;
+            margin: 0.2rem 0;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .lap-number {
+            font-weight: 600;
+            color: #00ff88;
+        }
+
+        .lap-time {
+            font-family: 'Courier New', monospace;
+            font-weight: 300;
+        }
+
+        .lap-diff {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .fullscreen-btn {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .fullscreen-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .achievement {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #333;
+            padding: 1rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+            transform: translateX(300px);
+            transition: transform 0.5s ease;
+            z-index: 1000;
+        }
+
+        .achievement.show {
+            transform: translateX(0);
+        }
+
+        .achievement::before {
+            content: '🏆';
+            margin-right: 0.5rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 2rem 1.5rem;
+                margin: 1rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .time-display {
+                font-size: 2.5rem;
+            }
+
+            .btn {
+                padding: 0.8rem 1.5rem;
+                font-size: 1rem;
+                min-width: 100px;
+            }
+
+            .controls {
+                gap: 0.5rem;
+            }
+
+            .stats-row {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .theme-selector {
+                position: static;
+                justify-content: center;
+                margin-top: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 1.5rem 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .time-display {
+                font-size: 2rem;
+            }
+
+            .btn {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.9rem;
+                min-width: 90px;
+            }
+        }
+
+        /* Pulse animation for active state */
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(0, 255, 136, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(0, 255, 136, 0);
+            }
+        }
+
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ff6b6b;
+            animation: confetti-fall 3s linear infinite;
+        }
+
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation">
+        <div class="floating-shapes">
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+        </div>
+    </div>
+
+    <button class="sound-toggle" id="soundToggle" onclick="toggleSound()">🔊</button>
+    <button class="fullscreen-btn" onclick="toggleFullscreen()">⛶</button>
+    <div class="achievement" id="achievement"></div>
+    <div class="celebration" id="celebration"></div>
+
+    <div class="container">
+        <div class="header">
+            <h1>⏱️ Stopwatch</h1>
+            <p>Professional Time Tracking Tool</p>
+            <div class="theme-selector">
+                <div class="theme-btn theme-purple active" onclick="changeTheme('purple')"></div>
+                <div class="theme-btn theme-ocean" onclick="changeTheme('ocean')"></div>
+                <div class="theme-btn theme-sunset" onclick="changeTheme('sunset')"></div>
+                <div class="theme-btn theme-forest" onclick="changeTheme('forest')"></div>
+            </div>
+        </div>
+
+        <div class="stopwatch-display" id="display">
+            <svg class="progress-ring" id="progressRing">
+                <circle cx="100" cy="100" r="90"></circle>
+                <circle cx="100" cy="100" r="90" class="progress"></circle>
+            </svg>
+            <div class="time-display" id="timeDisplay">00:00:00</div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-item">
+                <div class="stat-label">Total Laps</div>
+                <div class="stat-value" id="totalLaps">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Average</div>
+                <div class="stat-value" id="avgTime">00:00:00</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Best Lap</div>
+                <div class="stat-value" id="bestLap">00:00:00</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-start" id="startBtn" onclick="startStop()">Start</button>
+            <button class="btn btn-pause" id="lapBtn" onclick="recordLap()" disabled>Lap</button>
+            <button class="btn btn-reset" id="resetBtn" onclick="reset()">Reset</button>
+            <button class="btn btn-secondary" id="saveBtn" onclick="saveSession()" disabled>Save</button>
+        </div>
+
+        <div class="lap-section" id="lapSection" style="display: none;">
+            <div class="lap-header">
+                <div class="lap-title">📊 Lap Times</div>
+                <div class="lap-stats">
+                    <span>Fastest: <span id="fastestLap">--</span></span>
+                    <span>Slowest: <span id="slowestLap">--</span></span>
+                </div>
+            </div>
+            <div class="lap-times" id="lapTimes"></div>
+        </div>
+    </div>
+
+    <script>
+        let startTime = 0;
+        let elapsedTime = 0;
+        let timerInterval = null;
+        let isRunning = false;
+        let lapCount = 0;
+        let lapTimes = [];
+        let soundEnabled = true;
+        let sessionCount = parseInt(localStorage.getItem('sessionCount') || '0');
+
+        const timeDisplay = document.getElementById('timeDisplay');
+        const startBtn = document.getElementById('startBtn');
+        const lapBtn = document.getElementById('lapBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const lapSection = document.getElementById('lapSection');
+        const lapTimesContainer = document.getElementById('lapTimes');
+        const display = document.getElementById('display');
+        const progressRing = document.querySelector('.progress-ring .progress');
+        const soundToggle = document.getElementById('soundToggle');
+        const achievement = document.getElementById('achievement');
+        const celebration = document.getElementById('celebration');
+
+        // Audio context for sounds
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(frequency, duration) {
+            if (!soundEnabled) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            soundToggle.textContent = soundEnabled ? '🔊' : '🔇';
+            soundToggle.classList.toggle('muted', !soundEnabled);
+            playSound(soundEnabled ? 800 : 400, 0.1);
+        }
+
+        function changeTheme(theme) {
+            const themes = {
+                purple: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                ocean: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)',
+                sunset: 'linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%)',
+                forest: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)'
+            };
+            
+            document.body.style.background = themes[theme];
+            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.theme-${theme}`).classList.add('active');
+            playSound(600, 0.1);
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                playSound(700, 0.2);
+            } else {
+                document.exitFullscreen();
+                playSound(500, 0.2);
+            }
+        }
+
+        function showAchievement(text) {
+            achievement.textContent = text;
+            achievement.classList.add('show');
+            setTimeout(() => {
+                achievement.classList.remove('show');
+            }, 3000);
+        }
+
+        function createConfetti() {
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b', '#eb4d4b'];
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 3 + 's';
+                confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                celebration.appendChild(confetti);
+                
+                setTimeout(() => confetti.remove(), 5000);
+            }
+        }
+
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            const milliseconds = Math.floor((ms % 1000) / 10);
+
+            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}:${milliseconds.toString().padStart(2, '0')}`;
+        }
+
+        function updateProgress(currentTime) {
+            const maxTime = 60000; // 1 minute for full circle
+            const progress = (currentTime % maxTime) / maxTime;
+            const circumference = 2 * Math.PI * 90;
+            const offset = circumference - (progress * circumference);
+            progressRing.style.strokeDashoffset = offset;
+        }
+
+        function updateStats() {
+            document.getElementById('totalLaps').textContent = lapCount;
+            
+            if (lapTimes.length > 0) {
+                const avg = lapTimes.reduce((a, b) => a + b, 0) / lapTimes.length;
+                document.getElementById('avgTime').textContent = formatTime(avg);
+                
+                const best = Math.min(...lapTimes);
+                document.getElementById('bestLap').textContent = formatTime(best);
+                
+                const fastest = Math.min(...lapTimes);
+                const slowest = Math.max(...lapTimes);
+                document.getElementById('fastestLap').textContent = formatTime(fastest);
+                document.getElementById('slowestLap').textContent = formatTime(slowest);
+                
+                // Highlight fastest and slowest laps
+                document.querySelectorAll('.lap-item').forEach((item, index) => {
+                    const lapTime = lapTimes[lapTimes.length - 1 - index];
+                    item.classList.remove('fastest', 'slowest');
+                    if (lapTime === fastest && lapTimes.length > 1) {
+                        item.classList.add('fastest');
+                    } else if (lapTime === slowest && lapTimes.length > 1) {
+                        item.classList.add('slowest');
+                    }
+                });
+            }
+        }
+
+        function updateDisplay() {
+            const currentTime = elapsedTime + (isRunning ? Date.now() - startTime : 0);
+            timeDisplay.textContent = formatTime(currentTime);
+            updateProgress(currentTime);
+        }
+
+        function startStop() {
+            if (isRunning) {
+                // Pause
+                elapsedTime += Date.now() - startTime;
+                clearInterval(timerInterval);
+                isRunning = false;
+                
+                startBtn.textContent = 'Start';
+                startBtn.className = 'btn btn-start';
+                lapBtn.disabled = true;
+                saveBtn.disabled = false;
+                timeDisplay.classList.remove('running');
+                display.classList.remove('pulse');
+                
+                playSound(400, 0.2);
+                
+            } else {
+                // Start
+                startTime = Date.now();
+                isRunning = true;
+                
+                timerInterval = setInterval(updateDisplay, 10);
+                
+                startBtn.textContent = 'Pause';
+                startBtn.className = 'btn btn-pause';
+                lapBtn.disabled = false;
+                saveBtn.disabled = true;
+                timeDisplay.classList.add('running');
+                display.classList.add('pulse');
+                
+                playSound(800, 0.2);
+            }
+        }
+
+        function recordLap() {
+            if (isRunning) {
+                lapCount++;
+                const currentTime = elapsedTime + (Date.now() - startTime);
+                const lapTime = lapTimes.length > 0 ? currentTime - lapTimes.reduce((a, b) => a + b, 0) : currentTime;
+                
+                lapTimes.push(lapTime);
+                
+                const lapItem = document.createElement('div');
+                lapItem.className = 'lap-item';
+                
+                const prevTotal = lapTimes.slice(0, -1).reduce((a, b) => a + b, 0);
+                const diff = lapTimes.length > 1 ? lapTime - lapTimes[lapTimes.length - 2] : 0;
+                const diffText = lapTimes.length > 1 ? 
+                    `(${diff > 0 ? '+' : ''}${formatTime(Math.abs(diff))})` : '';
+                
+                lapItem.innerHTML = `
+                    <span class="lap-number">Lap ${lapCount}</span>
+                    <div>
+                        <span class="lap-time">${formatTime(lapTime)}</span>
+                        <div class="lap-diff">${diffText}</div>
+                    </div>
+                `;
+                
+                lapTimesContainer.insertBefore(lapItem, lapTimesContainer.firstChild);
+                lapSection.style.display = 'block';
+                
+                updateStats();
+                playSound(1000, 0.1);
+                
+                // Check for achievements
+                if (lapCount === 5) {
+                    showAchievement('5 Laps Completed! 🎉');
+                    createConfetti();
+                } else if (lapCount === 10) {
+                    showAchievement('Perfect 10! You\'re on fire! 🔥');
+                    createConfetti();
+                } else if (lapCount === 25) {
+                    showAchievement('Quarter Century! Incredible! ⭐');
+                    createConfetti();
+                }
+                
+                // Scroll to top of lap times
+                lapTimesContainer.scrollTop = 0;
+            }
+        }
+
+        function reset() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            startTime = 0;
+            elapsedTime = 0;
+            lapCount = 0;
+            lapTimes = [];
+            
+            timeDisplay.textContent = '00:00:00';
+            timeDisplay.classList.remove('running');
+            display.classList.remove('pulse');
+            progressRing.style.strokeDashoffset = 628;
+            
+            startBtn.textContent = 'Start';
+            startBtn.className = 'btn btn-start';
+            lapBtn.disabled = true;
+            saveBtn.disabled = true;
+            
+            lapTimesContainer.innerHTML = '';
+            lapSection.style.display = 'none';
+            
+            // Reset stats
+            document.getElementById('totalLaps').textContent = '0';
+            document.getElementById('avgTime').textContent = '00:00:00';
+            document.getElementById('bestLap').textContent = '00:00:00';
+            document.getElementById('fastestLap').textContent = '--';
+            document.getElementById('slowestLap').textContent = '--';
+            
+            playSound(300, 0.3);
+            
+            // Add reset animation
+            timeDisplay.style.transform = 'scale(1.1)';
+            timeDisplay.style.opacity = '0.5';
+            setTimeout(() => {
+                timeDisplay.style.transform = 'scale(1)';
+                timeDisplay.style.opacity = '1';
+            }, 200);
+        }
+
+        function saveSession() {
+            if (lapTimes.length === 0) return;
+            
+            sessionCount++;
+            const sessionData = {
+                date: new Date().toLocaleDateString(),
+                time: new Date().toLocaleTimeString(),
+                totalTime: formatTime(elapsedTime),
+                laps: lapCount,
+                lapTimes: lapTimes.map(time => formatTime(time)),
+                avgTime: formatTime(lapTimes.reduce((a, b) => a + b, 0) / lapTimes.length),
+                bestTime: formatTime(Math.min(...lapTimes))
+            };
+            
+            // Save to localStorage
+            localStorage.setItem(`session_${sessionCount}`, JSON.stringify(sessionData));
+            localStorage.setItem('sessionCount', sessionCount.toString());
+            
+            showAchievement(`Session ${sessionCount} Saved! 💾`);
+            playSound(900, 0.3);
+            saveBtn.disabled = true;
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(event) {
+            switch(event.code) {
+                case 'Space':
+                    event.preventDefault();
+                    startStop();
+                    break;
+                case 'KeyL':
+                    if (!lapBtn.disabled) {
+                        recordLap();
+                    }
+                    break;
+                case 'KeyR':
+                    reset();
+                    break;
+                case 'KeyS':
+                    if (!saveBtn.disabled) {
+                        saveSession();
+                    }
+                    break;
+                case 'KeyM':
+                    toggleSound();
+                    break;
+                case 'KeyF':
+                    toggleFullscreen();
+                    break;
+            }
+        });
+
+        // Touch gestures for mobile
+        let touchStartY = 0;
+        let touchEndY = 0;
+
+        timeDisplay.addEventListener('touchstart', function(event) {
+            touchStartY = event.changedTouches[0].screenY;
+        });
+
+        timeDisplay.addEventListener('touchend', function(event) {
+            touchEndY = event.changedTouches[0].screenY;
+            handleGesture();
+        });
+
+        function handleGesture() {
+            const swipeThreshold = 50;
+            const diff = touchStartY - touchEndY;
+            
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    // Swipe up - Start/Pause
+                    startStop();
+                } else {
+                    // Swipe down - Reset
+                    reset();
+                }
+            }
+        }
+
+        // Initialize display
+        updateDisplay();
+
+        // Add some interactive feedback
+        document.querySelectorAll('.btn').forEach(button => {
+            button.addEventListener('mousedown', function() {
+                this.style.transform = 'translateY(-1px) scale(0.98)';
+            });
+            
+            button.addEventListener('mouseup', function() {
+                this.style.transform = 'translateY(-3px) scale(1)';
+            });
+        });
+
+        // Prevent context menu on long press for mobile
+        document.addEventListener('contextmenu', function(event) {
+            event.preventDefault();
+        });
+
+        // Initialize audio on first interaction
+        document.body.addEventListener('click', initAudio, { once: true });
+    </script>
+</body>
+</html>
